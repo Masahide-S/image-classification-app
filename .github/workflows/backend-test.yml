@@ -1,0 +1,62 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-test.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-test.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+
+    - name: Create dummy model files
+      run: |
+        mkdir -p backend/models
+        echo '["class0", "class1"]' > backend/models/resnet152_classes.json
+        echo '["class0", "class1"]' > backend/models/vit_classes.json
+        python -c "import torch; import torch.nn as nn; from torchvision import models; model = models.resnet152(weights=None); model.fc = nn.Sequential(nn.Linear(2048, 512), nn.ReLU(), nn.Dropout(0.3), nn.Linear(512, 2)); torch.save(model.state_dict(), 'backend/models/resnet152_best_model.pth')"
+        python -c "import torch; import torch.nn as nn; import timm; model = timm.create_model('vit_base_patch16_224', pretrained=False); model.head = nn.Sequential(nn.Linear(768, 512), nn.ReLU(), nn.Dropout(0.3), nn.Linear(512, 2)); torch.save(model.state_dict(), 'backend/models/vit_best_model.pth')"
+
+    - name: Run tests with pytest
+      env:
+        PYTHONPATH: ${{ github.workspace }}/backend
+      run: |
+        pytest backend/tests/ -v --tb=short
+
+    - name: Test coverage
+      env:
+        PYTHONPATH: ${{ github.workspace }}/backend
+      run: |
+        pip install pytest-cov
+        pytest backend/tests/ --cov=backend/app --cov-report=xml --cov-report=term
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: backend
+        name: backend-coverage
