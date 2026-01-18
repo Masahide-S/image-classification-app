@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { predictImage } from './api';
-import { PredictionResponse, ModelType } from './types';
+import type { PredictionResponse, ModelType } from './types';
 import './App.css';
 
 function App() {
