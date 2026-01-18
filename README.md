@@ -15,9 +15,11 @@ ResNet152とVision Transformer (ViT)による画像分類Webアプリケーシ�
 - timm (PyTorch Image Models)
 
 **フロントエンド:**
-- React
-- TypeScript (予定)
+- React 19
+- TypeScript
+- Vite
 - pnpm
+- Axios
 
 ## プロジェクト構造
 
@@ -33,7 +35,13 @@ image-classification-app/
 │   ├── models/             # 学習済みモデルファイル
 │   ├── tests/              # テストコード
 │   └── requirements.txt    # Python依存関係
-└── frontend/               # Reactフロントエンド (開発中)
+└── frontend/               # Reactフロントエンド
+    ├── src/
+    │   ├── api.ts          # APIクライアント
+    │   ├── types.ts        # TypeScript型定義
+    │   ├── App.tsx         # メインコンポーネント
+    │   └── App.css         # スタイル
+    └── package.json
 
 ```
 
@@ -59,6 +67,24 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+### フロントエンド
+
+1. 依存関係のインストール:
+```bash
+cd frontend
+pnpm install
+```
+
+2. 環境変数の設定:
+```bash
+cp .env.example .env
+```
+
+3. 開発サーバーの起動:
+```bash
+pnpm dev
+```
+
 ### テスト
 
 ```bash
@@ -79,8 +105,38 @@ pytest tests/ -v
 - [x] バックエンドAPI実装
 - [x] テスト作成・修正
 - [x] GitHub Actions設定
-- [ ] フロントエンド実装
+- [x] フロントエンド実装
 - [ ] デプロイ設定
+
+## 使い方
+
+1. バックエンドサーバーを起動:
+```bash
+cd backend
+uvicorn app.main:app --reload
+```
+
+2. フロントエンドサーバーを起動（別ターミナル）:
+```bash
+cd frontend
+pnpm dev
+```
+
+3. ブラウザで`http://localhost:5173`を開く
+
+4. 画像をアップロードして、モデルを選択して予測を実行
+
+## スクリーンショット
+
+### メイン画面
+- 画像アップロード機能
+- モデル選択（ResNet152/ViT）
+- リアルタイムプレビュー
+
+### 予測結果
+- Top-K予測結果の表示
+- 信頼度の可視化（プログレスバー）
+- レスポンシブデザイン
 
 ## ライセンス
 
